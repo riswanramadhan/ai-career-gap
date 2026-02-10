@@ -184,10 +184,8 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded', code: 'NO_FILE' });
     }
 
-    const parser = new pdfParse.PDFParse({ data: req.file.buffer });
-    const result = await parser.getText();
-    const text = result.text.trim();
-    await parser.destroy();
+    const data = await pdfParse(req.file.buffer);
+    const text = data.text.trim();
 
     if (!text || text.length < 10) {
       return res.status(422).json({
@@ -196,7 +194,7 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
       });
     }
 
-    res.json({ text, pages: result.pages.length });
+    res.json({ text, pages: data.numpages });
   } catch (error) {
     console.error('PDF Parse Error:', error);
 
