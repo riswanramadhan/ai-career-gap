@@ -15,7 +15,28 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Career Gap Architect | AI-Powered Career Analysis",
-  description: "Bridge the gap between your resume and dream job with AI-powered skill analysis",
+  description: "Bridge the gap between your resume and dream job with AI-powered skill analysis.",
+  metadataBase: new URL("https://ai-career-gap-frontend.vercel.app"),
+  openGraph: {
+    title: "Career Gap Architect | AI-Powered Career Analysis",
+    description: "Analyze your resume vs job description and get a personalized learning roadmap.",
+    type: "website",
+    url: "https://ai-career-gap-frontend.vercel.app",
+    images: [
+      {
+        url: "https://drive.google.com/uc?export=download&id=1hzGa5klyU16YwzwUTTCX1mgO3emj2ej0",
+        width: 1200,
+        height: 630,
+        alt: "Career Gap Architect preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Career Gap Architect | AI-Powered Career Analysis by Riswan Ramadhan",
+    description: "Analyze your resume vs job description and get a personalized learning roadmap.",
+    images: ["https://drive.google.com/uc?export=download&id=1hzGa5klyU16YwzwUTTCX1mgO3emj2ej0"],
+  },
 };
 
 export default function RootLayout({
