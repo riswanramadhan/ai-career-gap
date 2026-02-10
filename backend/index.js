@@ -3,6 +3,10 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
+import multer from 'multer';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 import { PrismaClient } from '@prisma/client';
 import { analyzeGap } from './services/ai.js';
 
@@ -159,6 +163,67 @@ app.post('/api/analyze', async (req, res) => {
       code: "INTERNAL_ERROR"
     });
   }
+});
+
+// --- PDF UPLOAD & PARSE ---
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
+
+app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded', code: 'NO_FILE' });
+    }
+
+    const parser = new pdfParse.PDFParse({ data: req.file.buffer });
+    const result = await parser.getText();
+    const text = result.text.trim();
+    await parser.destroy();
+
+    if (!text || text.length < 10) {
+      return res.status(422).json({
+        error: 'Could not extract text from this PDF. Please make sure it is not a scanned image.',
+        code: 'EMPTY_PDF'
+      });
+    }
+
+    res.json({ text, pages: result.pages.length });
+  } catch (error) {
+    console.error('PDF Parse Error:', error);
+
+    if (error.message === 'Only PDF files are allowed') {
+      return res.status(400).json({ error: error.message, code: 'INVALID_FILE_TYPE' });
+    }
+
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'File too large. Maximum size is 5MB.', code: 'FILE_TOO_LARGE' });
+    }
+
+    res.status(500).json({ error: 'Failed to parse PDF file', code: 'PDF_PARSE_ERROR' });
+  }
+});
+
+// Multer error handler middleware
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'File too large. Maximum size is 5MB.', code: 'FILE_TOO_LARGE' });
+    }
+    return res.status(400).json({ error: err.message, code: 'UPLOAD_ERROR' });
+  }
+  if (err.message === 'Only PDF files are allowed') {
+    return res.status(400).json({ error: err.message, code: 'INVALID_FILE_TYPE' });
+  }
+  next(err);
 });
 
 // Health check endpoint

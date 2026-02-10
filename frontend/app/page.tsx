@@ -82,6 +82,55 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadingJobDesc, setUploadingJobDesc] = useState(false);
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
+  const [jobDescFileName, setJobDescFileName] = useState<string | null>(null);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const handleFileUpload = async (
+    file: File,
+    setTextFn: (text: string) => void,
+    setLoadingFn: (loading: boolean) => void,
+    setFileNameFn: (name: string | null) => void
+  ) => {
+    if (file.type !== "application/pdf") {
+      setError("Only PDF files are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File too large. Maximum size is 5MB.");
+      return;
+    }
+
+    setLoadingFn(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${apiUrl}/api/parse-pdf`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to parse PDF");
+      }
+
+      setTextFn(data.text);
+      setFileNameFn(file.name);
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to parse PDF file");
+    } finally {
+      setLoadingFn(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,8 +140,7 @@ export default function Home() {
     setShowResult(false);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const res = await fetch(`${apiUrl}/api/analyze`, {
+      const res = await fetch(`${apiUrl}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -128,6 +176,8 @@ const res = await fetch(`${apiUrl}/api/analyze`, {
     setResult(null);
     setError(null);
     setShowResult(false);
+    setResumeFileName(null);
+    setJobDescFileName(null);
   };
 
   const isValid = resume.length >= 50 && jobDesc.length >= 50;
@@ -170,10 +220,46 @@ const res = await fetch(`${apiUrl}/api/analyze`, {
                     className="framer-input h-80"
                     placeholder="Paste your resume content here. (Your work experience, Skills and technologies, Education and certifications)"
                     value={resume}
-                    onChange={(e) => setResume(e.target.value)}
+                    onChange={(e) => { setResume(e.target.value); setResumeFileName(null); }}
                     required
                   />
-                  <span className="char-count">{resume.length} chars</span>
+                  <div className="file-upload-row">
+                    <div className="upload-controls">
+                      <label className="file-upload-btn">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="hidden-file-input"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setResume, setUploadingResume, setResumeFileName);
+                          e.target.value = '';
+                        }}
+                        disabled={uploadingResume}
+                      />
+                      {uploadingResume ? (
+                        <span className="upload-loading">Analyze PDF...</span>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <span>Upload PDF</span>
+                        </>
+                      )}
+                    </label>
+                      <span className="file-upload-hint">PDF only, max 5MB</span>
+                    </div>
+                    <span className="char-count">{resume.length} chars</span>
+                    {resumeFileName && (
+                      <span className="file-name-badge">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {resumeFileName}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Job Description Input */}
@@ -183,10 +269,46 @@ const res = await fetch(`${apiUrl}/api/analyze`, {
                     className="framer-input h-80"
                     placeholder="Paste the job description here. (Job requirements, Required skills & qualifications, Responsibilities)"
                     value={jobDesc}
-                    onChange={(e) => setJobDesc(e.target.value)}
+                    onChange={(e) => { setJobDesc(e.target.value); setJobDescFileName(null); }}
                     required
                   />
-                  <span className="char-count">{jobDesc.length} chars</span>
+                  <div className="file-upload-row">
+                    <div className="upload-controls">
+                      <label className="file-upload-btn">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="hidden-file-input"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, setJobDesc, setUploadingJobDesc, setJobDescFileName);
+                          e.target.value = '';
+                        }}
+                        disabled={uploadingJobDesc}
+                      />
+                      {uploadingJobDesc ? (
+                        <span className="upload-loading">Analyze PDF...</span>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <span>Upload PDF</span>
+                        </>
+                      )}
+                    </label>
+                    <span className="file-upload-hint">PDF only, max 5MB</span>
+                    </div>
+                    <span className="char-count">{jobDesc.length} chars</span>
+                    {jobDescFileName && (
+                      <span className="file-name-badge">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {jobDescFileName}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

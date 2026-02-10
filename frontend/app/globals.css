@@ -243,10 +243,10 @@ body {
 .form-actions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   max-width: 500px;
   margin: 0 auto;
-  padding-top: 8px;
+  padding: 24px 0;
 }
 
 .form-grid-wrap {
@@ -277,7 +277,7 @@ body {
 
 .error-box {
   max-width: 800px;
-  margin: 0 auto 28px auto;
+  margin: 32px auto 28px auto;
 }
 
 /* ===== ANIMATED BACKGROUND - SPREADING WAVES ===== */
@@ -478,6 +478,7 @@ body {
   border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 18px;
+  padding-bottom: 48px;
   font-family: inherit;
   font-size: 15px;
   color: var(--text-primary);
@@ -498,14 +499,123 @@ body {
 }
 
 .char-count {
-  position: absolute;
-  bottom: 12px;
-  right: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 10;
+  border: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .char-count {
+    font-size: 11px;
+  }
+}
+
+/* ===== FILE UPLOAD ===== */
+.hidden-file-input {
+  display: none;
+}
+
+.file-upload-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+@media (max-width: 640px) {
+  .file-upload-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1.5px dashed var(--accent);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .file-upload-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.file-upload-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-style: solid;
+}
+
+.file-upload-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.file-upload-hint {
   font-size: 12px;
   color: var(--text-muted);
-  background: var(--bg-card);
-  padding: 2px 8px;
-  border-radius: 6px;
+}
+
+.upload-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.file-name-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--success, #22c55e);
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 20px;
+}
+
+.file-name-badge svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 /* ===== BUTTON STYLES ===== */
