@@ -91,7 +91,8 @@ export default function Home() {
     setShowResult(false);
 
     try {
-      const res = await fetch("http://localhost:5000/api/analyze", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const res = await fetch(`${apiUrl}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
