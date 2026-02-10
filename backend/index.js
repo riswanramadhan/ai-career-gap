@@ -10,11 +10,22 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  'https://ai-career-gap-frontend.vercel.app',
+  'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: "*", // Izinkan semua domain
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Allow all for now, tighten later
+  },
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.options('*', cors());
 app.use(express.json());
