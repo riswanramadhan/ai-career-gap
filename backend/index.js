@@ -10,7 +10,13 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: "*", // Izinkan semua domain
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+  credentials: true
+}));
+app.options('*', cors());
 app.use(express.json());
 
 // --- ROUTES ---
