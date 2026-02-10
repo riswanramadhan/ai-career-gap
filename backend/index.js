@@ -10,6 +10,10 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
+// In-memory cache (layer 1 - instant, no DB roundtrip)
+const memoryCache = new Map();
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+
 const allowedOrigins = [
   'https://ai-career-gap-frontend.vercel.app',
   'http://localhost:3000'
@@ -52,10 +56,21 @@ app.post('/api/analyze', async (req, res) => {
     }
 
     // 1. HASHING (Caching Logic)
-    const resumeHash = crypto.createHash('sha256').update(resumeText.trim()).digest('hex');
-    const jobDescHash = crypto.createHash('sha256').update(jobDescText.trim()).digest('hex');
+    const resumeHash = crypto.createHash('sha256').update(resumeText.trim().toLowerCase()).digest('hex');
+    const jobDescHash = crypto.createHash('sha256').update(jobDescText.trim().toLowerCase()).digest('hex');
+    const cacheKey = `${resumeHash}:${jobDescHash}`;
 
-    // 2. CEK DATABASE (Cache) - with graceful fallback if DB is unavailable
+    // 2a. CEK MEMORY CACHE (Layer 1 - Instant)
+    const memCached = memoryCache.get(cacheKey);
+    if (memCached && (Date.now() - memCached.timestamp < CACHE_TTL)) {
+      console.log("⚡ MEMORY CACHE HIT: Instant response!");
+      return res.json({
+        ...memCached.data,
+        cached: true
+      });
+    }
+
+    // 2b. CEK DATABASE (Layer 2 - Fast, with graceful fallback)
     let existingAnalysis = null;
     let dbAvailable = true;
     
@@ -70,7 +85,9 @@ app.post('/api/analyze', async (req, res) => {
       });
 
       if (existingAnalysis) {
-        console.log("⚡ CACHE HIT: Mengambil data dari database...");
+        console.log("⚡ DB CACHE HIT: Mengambil data dari database...");
+        // Store in memory cache for next time
+        memoryCache.set(cacheKey, { data: existingAnalysis, timestamp: Date.now() });
         return res.json({
           ...existingAnalysis,
           cached: true
@@ -113,6 +130,9 @@ app.post('/api/analyze', async (req, res) => {
         console.warn("⚠️ Failed to save to database:", saveError.message);
       }
     }
+
+    // Store in memory cache regardless of DB status
+    memoryCache.set(cacheKey, { data: responseData, timestamp: Date.now() });
 
     res.json(responseData);
 
