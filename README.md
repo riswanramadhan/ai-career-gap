@@ -1,15 +1,15 @@
-# 🚀 Career Gap Architect (AI-Powered)
+# Career Gap Architect (AI-Powered)
 
 Full Stack MVP that analyzes the gap between a candidate's Resume and a Job Description using Generative AI. Built with performance and engineering depth in mind.
 
-## 🔗 Live Demo
+## Live Demo
 - **Demo Website:** https://ai-career-gap-frontend.vercel.app/
 
 
-## 🛠 Tech Stack
+## Tech Stack
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, TypeScript.
 - **Backend:** Node.js, Express.js.
-- **Database:** PostgreSQL (via Supabase/Neon), Prisma ORM.
+- **Database:** PostgreSQL (via Supabase), Prisma ORM.
 - **AI Engine:** Google Gemini 1.5 Flash (via `@google/genai`).
 - **Deployment:** Vercel (Monorepo setup).
 
@@ -23,7 +23,7 @@ Full Stack MVP that analyzes the gap between a candidate's Resume and a Job Desc
     - Handles CORS preflight checks manually for seamless cross-origin requests.
     - Validates input presence before processing.
 
-## 📦 Local Setup
+## Local Setup
 
 1.  **Clone the repo:**
     ```bash
